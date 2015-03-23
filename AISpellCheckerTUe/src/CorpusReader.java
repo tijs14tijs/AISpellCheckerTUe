@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+// CorpusReader provides auxilliary functionality.
 public class CorpusReader 
 {
     final static String CNTFILE_LOC = "samplecnt.txt";
@@ -108,6 +109,8 @@ public class CorpusReader
        return vocabulary.contains(word);
     }    
     
+    // This smoothening method must be filled to obtain decent spelling correction. 
+    // The simplest, but not the best solution, is to use add-one smoothening.
     public double getSmoothedCount(String NGram)
     {
         if(NGram == null || NGram.length() == 0)
