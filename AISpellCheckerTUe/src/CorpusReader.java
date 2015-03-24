@@ -119,9 +119,16 @@ public class CorpusReader
         }
         
         double smoothedCount = 0.0;
+        int last_word_separator = NGram.lastIndexOf(' ');
+        if(last_word_separator == -1)
+            return 1.0;
         
-        /** ADD CODE HERE **/
+        String NGram_min_last = NGram.substring(0, last_word_separator);
         
+        // Basic add-one smoothening
+        smoothedCount = 
+                ((double) getNGramCount(NGram) + 1.0) / 
+                ((double) getNGramCount(NGram_min_last) + (double) ngrams.size());
         
         return smoothedCount;        
     }

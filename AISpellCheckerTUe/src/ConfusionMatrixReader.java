@@ -61,7 +61,10 @@ public class ConfusionMatrixReader {
      */
     public int getConfusionCount(String error, String correct) 
     {
+        // AVG: 41
         Integer count = confusionMatrix.get(error+"|"+correct);
+        // returns probibility of error given correct
+        // slide 34, NLP 2
         return count==null?0:count;
     }
 }

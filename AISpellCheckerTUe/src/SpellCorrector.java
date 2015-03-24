@@ -11,12 +11,6 @@ public class SpellCorrector {
     {
         this.cr = cr;
         this.cmr = cmr;
-        long starttime = System.nanoTime();
-        HashSet<String> results = null;
-        for(int x = 0; x < 100; x ++) {
-            results = getCandidateWords("prosecudion");
-        }
-        System.out.println(results.stream().count() + " " +(System.nanoTime() - starttime));
     }
     
     /*
@@ -40,22 +34,29 @@ SCALE_FACTOR.
         // Calculate if each word is correct, or if a replacement is more likely
         for(int i = 0; i < words.length; i++) {
             String word = words[i];
+            String ngram = (i>0) ? words[i-1]+" "+word : word;
+            double ngram_prob = cr.getSmoothedCount(ngram);
             HashSet<String> candidate_words = getCandidateWords(word);
-            double maximum_replace_prob = 0.0;
+            
+            double maximum_replace_score = ngram_prob;
             String maximum_candidate_word = word;
             
             for(String candidate_word : candidate_words) {
                 double replace_prob = calculateChannelModelProbability(candidate_word, word);
-                if(replace_prob > maximum_replace_prob) {
+                String ngram_candidate = (i>0) ? words[i-1]+" "+candidate_word : candidate_word;
+                double ngram_candidate_prob = cr.getSmoothedCount(ngram_candidate);
+                
+                if(ngram_candidate_prob * replace_prob > maximum_replace_score) {
                     maximum_candidate_word = candidate_word;
-                    maximum_replace_prob = replace_prob;
+                    maximum_replace_score = ngram_candidate_prob * replace_prob;
                 }
+                System.out.println("candidate for "+word + " -("+ngram_candidate_prob+":"+replace_prob+")-> " +candidate_word);
             }
-            System.out.println(word + " -("+maximum_replace_prob+")-> " +maximum_candidate_word);
+            
+//            if(maximum_replace_score > 0.5) {
+//                System.out.println("replace "+word + " -("+maximum_replace_score+")-> " +maximum_candidate_word);
+//            }
         }
-        
-        // TODO: combine with bigram information:
-        // cr.getSmoothedCount(String NGram) calculates probability of certain sequence of words
         
         return finalSuggestion.trim();
     }
@@ -80,7 +81,47 @@ which code is provided at the end of the method).
         // return likelihood for this to occur based on the values in the confusion matrix
         // TODO: Use cmr.getConfusionCount(String error, String correct) 
         
-        return 0.0;
+        // Calculate score for presumably incorect word
+        int i = 0;
+        while(i < Math.min(suggested.length()-1, incorrect.length()-1)) {
+            if(suggested.charAt(i) != incorrect.charAt(i)) break;
+            i++;
+        }
+        
+        String correct_letters, incorrect_letters;
+        double confcount = 0;
+        
+        // TODO add length checks
+        
+        // suggested has deleted 1 letter at i
+        if(i+1 < incorrect.length() && suggested.charAt(i) == incorrect.charAt(i+1)){
+            correct_letters = String.valueOf(suggested.charAt(i));
+            incorrect_letters = incorrect.substring(i, i + 2);
+            
+        // suggested has inserted 1 letter at i
+        }else if(i+1 < suggested.length() && suggested.charAt(i+1) == incorrect.charAt(i)){
+            correct_letters = suggested.substring(i, i + 2);
+            incorrect_letters = String.valueOf(incorrect.charAt(i));
+            
+        // suggested has 1 letter randomly changed, or transpositioned with next letter
+        }else if(i+1 < incorrect.length() && i+2 < suggested.length() && suggested.charAt(i+1) == incorrect.charAt(i) && suggested.charAt(i) == incorrect.charAt(i+1)) {
+            correct_letters = suggested.substring(i, i + 2);
+            incorrect_letters = incorrect.substring(i, i + 2);
+        }else {
+            correct_letters = String.valueOf(suggested.charAt(i));
+            incorrect_letters = String.valueOf(incorrect.charAt(i));
+        }
+        
+        confcount = cmr.getConfusionCount(incorrect_letters, correct_letters);
+        if(confcount == 0) {
+            confcount = 41; // average
+            System.out.println(incorrect_letters +"|"+ correct_letters);
+        }
+        
+//        cmr.getConfusionCount(String error, String correct) 
+        
+        
+        return confcount/917.0;
     }
     
     /*
@@ -93,13 +134,24 @@ to improve the reach of your program.
     // Collect all words from the vocabulary that have edit-distance 1 to a word. 
     public HashSet<String> getCandidateWords(String word)
     {
-        HashSet<String> ListOfWords = new HashSet<String>();
+        HashSet<String> ListOfWords = new HashSet<>();
         
         // Mess up the word in all possible ways, 
         //  such that the call below checks which of the modified versions is in the vocabulary?
-        char[] word_letters = word.toCharArray();
         int wlen = word.length();
         StringBuilder sb, sb2;
+        
+        // Insertion before first letter
+        for(int k = 0; k < ALPHABET.length; k++) {
+            sb = new StringBuilder();
+            // insert random letter
+            sb.append(ALPHABET[k]);
+            for(int j = 0; j < wlen; j++) {
+                // append normal letter
+                sb.append(word.charAt(j));
+            }
+            ListOfWords.add(sb.toString());
+        }
         
         for(int letter_index = 0; letter_index < wlen; letter_index++) {
             // deletion
@@ -127,22 +179,6 @@ to improve the reach of your program.
             }
             ListOfWords.add(sb.toString());
             
-            // insertion: WARN: insertion before first letter is *NOT* included!!
-//            for(int k = 0; k < ALPHABET.length; k++) {
-//                sb = new StringBuilder();
-//                for(int j = 0; j < wlen; j++) {
-//                    if(j != letter_index) {
-//                        // append normal letter
-//                        sb.append(word.charAt(j));
-//                    }else {
-//                        // insert random letter
-//                        sb.append(word.charAt(j));
-//                        sb.append(ALPHABET[k]);
-//                    }
-//                }
-//                ListOfWords.add(sb.toString());
-//            }
-            
             // substitution and insertion
             for(int k = 0; k < ALPHABET.length; k++) {
                 sb = new StringBuilder();
@@ -167,9 +203,7 @@ to improve the reach of your program.
             }
         }
         
-        
         // This call returns only words which are in the vocabulary
         return cr.inVocabulary(ListOfWords);
-        // PLEASE: use an ordered list for your vocabulary next time, now it is a set and that sucks in computation time...
     }          
 }
