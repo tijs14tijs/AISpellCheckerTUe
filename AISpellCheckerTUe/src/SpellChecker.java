@@ -1,4 +1,7 @@
+import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Scanner;
 
 
@@ -27,10 +30,19 @@ public class SpellChecker {
     }
     
     static void nonPeachTest(SpellCorrector sc) throws IOException { 
-            String[] sentences = {
-                "at the hme locations there were traces of water",
-                "this assay allowed us to measure a wide variety of conditions"
-            };
+            String[] sentences = {};
+            FileInputStream fis;
+            fis = new FileInputStream("test-sentences.txt");
+            BufferedReader in = new BufferedReader(new InputStreamReader(fis));
+
+            while (in.ready()) {
+                String phrase = in.readLine().trim();
+                if(phrase.startsWith("#")) continue;
+                System.out.println("Input : " + phrase);
+                String result=sc.correctPhrase(phrase);
+                System.out.println("Answer: " +result);
+                System.out.println();
+            }
             
             for(String s0: sentences) {
                 System.out.println("Input : " + s0);

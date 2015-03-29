@@ -113,10 +113,10 @@ public class CorpusReader
     // The simplest, but not the best solution, is to use add-one smoothening.
     public double getSmoothedCount(String NGram)
     {
-        if(NGram == null || NGram.length() == 0)
-        {
-            throw new IllegalArgumentException("NGram must be non-empty.");
-        }
+//        if(NGram == null || NGram.length() == 0)
+//        {
+//            throw new IllegalArgumentException("NGram must be non-empty.");
+//        }
         
         double smoothedCount = 0.0;
         int last_word_separator = NGram.lastIndexOf(' ');
