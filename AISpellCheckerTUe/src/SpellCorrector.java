@@ -113,8 +113,9 @@ public class SpellCorrector {
                     sb_new.set(w1_index, sugg_word);
 
                     for (String sugg_word_two : sentenceWordSuggestions.get(w2_index)) {
-                        sb_new.set(w2_index, sugg_word_two);
-                        lssb.add(sb_new);
+                        List sb_new_copy = new ArrayList(sb_new);
+                        sb_new_copy.set(w2_index, sugg_word_two);
+                        lssb.add(sb_new_copy);
                     }
                 }
 
@@ -220,7 +221,8 @@ public class SpellCorrector {
             Sentence finalSentence = resultingSentences.peek();
             finalSuggestion = finalSentence.getStr();
 
-            for (int i = 0; i < Math.max(100, resultingSentences.size()); i++) {
+            int size = resultingSentences.size();
+            for (int i = 0; i < Math.min(100, size); i++) {
                 Sentence s = resultingSentences.poll();
                 if (DEBUG) {
                     System.out.println(s.getValue() + "| " + s.getStr());
