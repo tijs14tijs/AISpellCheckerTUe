@@ -162,20 +162,21 @@ public class SpellCorrector {
                 // Since the sentence contains no direct errors, it is a suggestion by itself too.
                 lssb.add(default_sentence);
 
-            // k is index of wrong word 1 (replace with all suggestions)
+                // k is index of wrong word 1 (replace with all suggestions)
                 // i is index of wrong word 2 (replace with all suggestions)
                 // if(i==k) then there is just 1 wrong word (replace wi or wk with all suggestions)
-                for (int k = 0; k < words.length / 2; k++) {
-                    for (int i = 1 + words.length / 2; i < words.length; i++) {
+                for (int k = 0; k < words.length - 2; k++) {
+                    for (int i = k + 2; i < words.length; i++) {
 
                         // replace word i by every suggestion except this wrong word
-                        for (String sugg_word : sentenceWordSuggestions.get(i)) {
+                        for (String sugg_word : sentenceWordSuggestions.get(k)) {
                             List mashup_sentence = new ArrayList(default_sentence);
-                            mashup_sentence.set(i, sugg_word);
-
-                            for (String sugg_word_two : sentenceWordSuggestions.get(k)) {
-                                mashup_sentence.set(k, sugg_word_two);
-                                possibleSentences.add(new Sentence(to_sentence(mashup_sentence)));
+                            mashup_sentence.set(k, sugg_word);
+                            if(i != k) {
+                                for (String sugg_word_two : sentenceWordSuggestions.get(i)) {
+                                    mashup_sentence.set(i, sugg_word_two);
+                                    possibleSentences.add(new Sentence(to_sentence(mashup_sentence)));
+                                }
                             }
                         }
                     }
@@ -219,7 +220,7 @@ public class SpellCorrector {
             Sentence finalSentence = resultingSentences.peek();
             finalSuggestion = finalSentence.getStr();
 
-            for (int i = 0; i < Math.min(5, resultingSentences.size()); i++) {
+            for (int i = 0; i < Math.min(100, resultingSentences.size()); i++) {
                 Sentence s = resultingSentences.poll();
                 if (DEBUG) {
                     System.out.println(s.getValue() + "| " + s.getStr());

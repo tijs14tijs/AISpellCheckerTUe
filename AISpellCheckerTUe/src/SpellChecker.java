@@ -54,9 +54,8 @@ public class SpellChecker {
                         System.out.println();
                     }else{
                         correct++;
-                        System.out.println(correct+"/"+tested+": "+phrase+"\t->\t"+result);
                     }
-                    tested++;
+                    System.out.println(correct+"/"+(++tested)+": "+phrase+"\t->\t"+result);
                 }else{
                     phrase = trimmedline;
                     System.out.println("Input : " + phrase);
