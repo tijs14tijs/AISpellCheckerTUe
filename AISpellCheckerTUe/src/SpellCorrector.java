@@ -220,7 +220,7 @@ public class SpellCorrector {
             Sentence finalSentence = resultingSentences.peek();
             finalSuggestion = finalSentence.getStr();
 
-            for (int i = 0; i < Math.min(100, resultingSentences.size()); i++) {
+            for (int i = 0; i < Math.max(100, resultingSentences.size()); i++) {
                 Sentence s = resultingSentences.poll();
                 if (DEBUG) {
                     System.out.println(s.getValue() + "| " + s.getStr());
@@ -292,9 +292,9 @@ public class SpellCorrector {
             double ngram_prob;
             // Check if the replacement is better with the word before and after it.
             if (i == 0) {
-                ngram_prob = cr.getSmoothedCount(ngram_fw) - cr.getSmoothedCount(ngram_fw_old);
+                ngram_prob = (cr.getSmoothedCount(ngram_fw)*cr.getSmoothedCount(ngram_fw)) - (cr.getSmoothedCount(ngram_fw_old)*cr.getSmoothedCount(ngram_fw_old));
             } else if (i >= words.length - 2) {
-                ngram_prob = cr.getSmoothedCount(ngram) - cr.getSmoothedCount(ngram_old);
+                ngram_prob = (cr.getSmoothedCount(ngram)*cr.getSmoothedCount(ngram)) - (cr.getSmoothedCount(ngram_old)*cr.getSmoothedCount(ngram_old));
             } else {
                 ngram_prob = (cr.getSmoothedCount(ngram) * cr.getSmoothedCount(ngram_fw)) - (cr.getSmoothedCount(ngram_old) * cr.getSmoothedCount(ngram_fw_old));
             }
